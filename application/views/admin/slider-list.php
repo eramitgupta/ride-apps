@@ -1,0 +1,170 @@
+<?php
+require_once('template/head.php');
+?>
+<style>
+    .error {
+        color: red;
+    }
+</style>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.3.0/css/responsive.dataTables.min.css">
+<!-- Begin page -->
+<div id="layout-wrapper">
+
+    <?php require_once('template/header.php'); ?>
+    <!-- ========== Left Sidebar Start ========== -->
+    <?php require_once('template/side-menu.php'); ?>
+    <!-- Left Sidebar End -->
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+                <!-- start page title -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0 font-size-18"><?= $title ?></h4>
+                        </div>
+                    </div>
+                </div>
+                <!-- end page title -->
+                <div class="row">
+                    <div class="col-xl-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel">
+                                    <div class="carousel-inner" role="listbox">
+                                        <?php
+                                        $i = 1;
+                                        foreach ($SliderArray as $item) {
+                                        ?>
+                                            <div class="carousel-item
+                                        <?php
+                                            if ($i == 1) {
+                                                echo 'active';
+                                            } ?>
+                                        ">
+                                                <a href="<?= $item['ahref'] ?>" target="_blank">
+                                                    <img class="d-block img-fluid" src="<?= base_url('uploads/slider/' . $item['images']) ?>" style="height: 250px;">
+                                                </a>
+                                            </div>
+                                        <?php $i++;
+                                        } ?>
+                                    </div>
+                                    <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="sr-only">Previous</span>
+                                    </a>
+                                    <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="sr-only">Next</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-xl-9">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="table-responsive mb-0" data-pattern="priority-columns">
+
+                                            <table id="datatable" class="table table-bordered  dt-responsive nowrap w-100">
+                                                <thead>
+                                                    <tr>
+                                                        <th>S.N</th>
+                                                        <th>Image</th>
+                                                        <th>ahref</th>
+                                                        <th>Status</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+
+                                                <tbody>
+                                                    <?php
+                                                    $x = 1;
+                                                    foreach ($SliderArray as $row) {
+                                                    ?>
+                                                        <tr id="<?= $row['id'] ?>">
+                                                            <td><?= $x ?></td>
+                                                            <td>
+                                                                <img src="<?= base_url('uploads/slider/' . $row['images']) ?>" style="height: 45px;">
+                                                            </td>
+                                                            <td><?= ucfirst($row['ahref']) ?></td>
+                                                            <td>
+                                                                    <?php
+                                                                    if ($row['status'] == 'Show') {
+                                                                        $color = 'success';
+                                                                        $status = $row['status'];
+                                                                    } else {
+                                                                        $color = 'danger';
+                                                                        $status = $row['status'];
+                                                                    }
+                                                                    ?>
+                                                                    <a href="<?= base_url('admin/slider/status?id=' . $row['id'] . '&status=' . $row['status']) ?>" class="btn btn-<?= $color; ?> btn-rounded waves-effect waves-light"><?= $status ?></a>
+                                                                </td>
+                                                            <td>
+                                                                <div class="btn-group" role="group" aria-label="Basic example">
+                                                                    <a href="edit/<?= $row['id'] ?>" class="btn btn-primary">
+                                                                        <i class="bx bx-edit"></i>
+                                                                    </a>
+                                                                    <button type="button" class="btn btn-danger DeleteSlider" id="DeleteSlider">
+                                                                        <input type="hidden" value="<?= $row['id'] ?>" class="deletevalue">
+                                                                        <i class="fas fa-trash-alt"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    <?php
+                                                        $x++;
+                                                    }
+                                                    ?>
+                                                </tbody>
+                                            </table>
+
+                                        </div>
+
+                                    </div> <!-- end col -->
+                                </div> <!-- end row -->
+
+                            </div>
+                            <!-- end card body -->
+                        </div>
+                        <!-- end card -->
+                    </div>
+                    <!-- end col -->
+                </div>
+            </div> <!-- end row -->
+
+            <!-- End Page-content -->
+        </div>
+    </div>
+</div>
+<!-- end main content-->
+</div>
+<!-- END layout-wrapper -->
+
+<?php require_once('template/script.php'); ?>
+<script src="<?= base_url('public/js/code.js') ?>"></script>
+<script>
+    $(document).ready(function() {
+        $('#datatable').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                'excel', 'pdf', 'print'
+            ]
+        });
+    });
+</script>
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.2.3/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.print.min.js"></script>
