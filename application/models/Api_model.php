@@ -105,6 +105,28 @@ class Api_model extends CI_Model{
         return $this->db->get()->result_array();
     }
 
+    public function UserFriendList($id)
+    {
+        return $this->db->select('tbl_friends_request.*, tbl_login.name, tbl_login.photo, tbl_login.photo_url')
+                        ->from('tbl_friends_request')
+                        ->join('tbl_login','tbl_friends_request.frend_id = tbl_login.id')
+                        ->where('tbl_friends_request.user_id',$id)
+                        ->where('tbl_friends_request.status','Pending')
+                        ->get()
+                        ->result_array();
+    }
+
+    public function FriendList($id)
+    {
+        return $this->db->select('tbl_friends_request.*, tbl_login.name, tbl_login.photo, tbl_login.photo_url')
+                        ->from('tbl_friends_request')
+                        ->join('tbl_login','tbl_friends_request.frend_id = tbl_login.id')
+                        ->where('tbl_friends_request.user_id',$id)
+                        ->where('tbl_friends_request.status','Active')
+                        ->get()
+                        ->result_array();
+    }
+
 
 
 }

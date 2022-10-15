@@ -295,9 +295,6 @@ class AppApi extends RestController
         $config['max_size']             = 2000;
         $config['encrypt_name'] = TRUE;
         $this->load->library('upload', $config);
-
-
-
         if (!$this->upload->do_upload('file')) {
           $this->response(array(
             "status" => 201,
@@ -305,7 +302,9 @@ class AppApi extends RestController
           ), RestController::HTTP_NOT_FOUND);
         } else {
           if (!empty($responseData['photo'])) {
-            unlink("uploads/user/$responseData[photo]");
+            if ($responseData['photo'] != 'default.png') {
+              unlink("uploads/user/$responseData[photo]");
+            }
           }
           $photo = array('upload_data' => $this->upload->data());
           $filePhoto = $photo['upload_data']['file_name'];
@@ -441,7 +440,11 @@ class AppApi extends RestController
           "message" => 'Please select a valid image file',
         ), RestController::HTTP_NOT_FOUND);
       } else {
-        unlink("uploads/create_ride/$responseData[image]");
+        if (!empty($responseData['image'])) {
+          if ($responseData['image'] != 'default.png') {
+            unlink("uploads/create_ride/$responseData[image]");
+          }
+        }
         $photo = array('upload_data' => $this->upload->data());
         $filePhoto = $photo['upload_data']['file_name'];
       }
@@ -910,22 +913,31 @@ class AppApi extends RestController
       ), RestController::HTTP_NOT_FOUND);
     } else {
 
-      $data = [
-        'user_id' => $this->security->xss_clean($this->input->post('user_id')),
-        'friend_id' => $this->security->xss_clean($this->input->post('friend_id')),
-        'date_time' => date('Y-m-d h:i:s A'),
-      ];
-
-      if ($this->Api_model->insert('tbl_friends_request', $data) == true) {
-        $this->response(array(
-          "status" => 200,
-          "message" => 'friend Request Sent Successfully',
-        ), RestController::HTTP_OK);
-      } else {
+      if ($this->input->post('user_id')  == $this->input->post('friend_id')) {
+        $string = str_replace('</p>', '', validation_errors());
+        $arrError = explode('<p>', $string);
         $this->response(array(
           "status" => 201,
-          "message" => 'Server Error',
+          "message" => 'Do not send a friend request to yourself',
         ), RestController::HTTP_NOT_FOUND);
+      } else {
+        $data = [
+          'user_id' => $this->security->xss_clean($this->input->post('user_id')),
+          'frend_id' => $this->security->xss_clean($this->input->post('friend_id')),
+          'date_time' => date('Y-m-d h:i:s A'),
+        ];
+
+        if ($this->Api_model->insert('tbl_friends_request', $data) == true) {
+          $this->response(array(
+            "status" => 200,
+            "message" => 'friend Request Sent Successfully',
+          ), RestController::HTTP_OK);
+        } else {
+          $this->response(array(
+            "status" => 201,
+            "message" => 'Server Error',
+          ), RestController::HTTP_NOT_FOUND);
+        }
       }
     }
   }
@@ -960,7 +972,7 @@ class AppApi extends RestController
         $data = [
           'status' => 'Active',
         ];
-        $array = array('id' => $id, 'user_id' => $user_id, 'friend_id' => $friend_id);
+        $array = array('id' => $id, 'user_id' => $user_id, 'frend_id' => $friend_id);
         if ($this->Api_model->UpdateArray('tbl_friends_request', $array, $data) == true) {
           $this->response(array(
             "status" => 200,
@@ -979,8 +991,7 @@ class AppApi extends RestController
 
   public function friendsRequestDelete_post()
   {
-
-    $this->form_validation->set_rules('id', 'id', 'trim|strip_tags|required');
+    $this->form_validation->set_rules('friend_id', 'Friend ID', 'trim|strip_tags|required');
     $this->form_validation->set_rules('user_id', 'User ID', 'trim|strip_tags|required');
 
     if ($this->form_validation->run() === FALSE) {
@@ -992,18 +1003,16 @@ class AppApi extends RestController
       ), RestController::HTTP_NOT_FOUND);
     } else {
 
-      $id = $this->security->xss_clean($this->input->post('id'));
       $user_id = $this->security->xss_clean($this->input->post('user_id'));
-
-      $responseData = $this->Api_model->GetData('tbl_friends_request', $id);
+      $friend_id = $this->security->xss_clean($this->input->post('friend_id'));
+      $responseData = $this->Api_model->SelectData('tbl_friends_request', ['user_id' => $user_id, 'frend_id' => $friend_id]);
       if (empty($responseData)) {
         $this->response(array(
           "status" => 201,
           "message" => 'Not Found Data',
         ), RestController::HTTP_NOT_FOUND);
       } else {
-        $array = array('id' => $id, 'user_id' => $user_id);
-        if ($this->Api_model->DeleteArray("tbl_friends_request", $array) == true) {
+        if ($this->Api_model->DeleteArray("tbl_friends_request", ['id' => $responseData[0]['id']]) == true) {
           $this->response(array(
             "status" => 200,
             "message" => 'Delete Successfully',
@@ -1022,7 +1031,7 @@ class AppApi extends RestController
   {
     $this->form_validation->set_rules('user_id', 'User ID', 'trim|strip_tags|required');
     if ($this->form_validation->run() === FALSE) {
-      $string = str_replace('</p>', '', validation_errors());
+      $string = str_replace('</pre>', '', validation_errors());
       $arrError = explode('<p>', $string);
       $this->response(array(
         "status" => 201,
@@ -1030,14 +1039,20 @@ class AppApi extends RestController
       ), RestController::HTTP_NOT_FOUND);
     } else {
       $user_id = $this->security->xss_clean($this->input->post('user_id'));
-      $array = array('user_id' => $user_id, 'status' => 'Active');
-      $response = $this->Api_model->SelectData('tbl_friends_request', $array);
-      $rowCount = $this->Api_model->CountsData('tbl_friends_request', $array);
+      $response = $this->Api_model->FriendList($user_id);
       if (!empty($response)) {
+
+        for ($i = 0; $i < count($response); $i++) {
+          if (!empty($response[$i]['photo'])) {
+            $response[$i]['image'] = base_url() . 'uploads/user/' . $response[$i]['photo'];
+            unset($response[$i]['photo']);
+          }
+        }
+
         $this->response(array(
           "status" => 200,
           "message" => "Friend list found",
-          "total Friend list found" => $rowCount,
+          "total Friend list found" => count($response),
           "data" => $response,
         ), RestController::HTTP_OK);
       } else {
@@ -1061,14 +1076,20 @@ class AppApi extends RestController
       ), RestController::HTTP_NOT_FOUND);
     } else {
       $user_id = $this->security->xss_clean($this->input->post('user_id'));
-      $array = array('user_id' => $user_id, 'status' => 'Pending');
-      $response = $this->Api_model->SelectData('tbl_friends_request', $array);
-      $rowCount = $this->Api_model->CountsData('tbl_friends_request', $array);
+      $response = $this->Api_model->UserFriendList($user_id);
       if (!empty($response)) {
+
+        for ($i = 0; $i < count($response); $i++) {
+          if (!empty($response[$i]['photo'])) {
+            $response[$i]['image'] = base_url() . 'uploads/user/' . $response[$i]['photo'];
+            unset($response[$i]['photo']);
+          }
+        }
+
         $this->response(array(
           "status" => 200,
           "message" => "Friend request list found",
-          "total friend request list found" => $rowCount,
+          "total friend request list found" => count($response),
           "data" => $response,
         ), RestController::HTTP_OK);
       } else {
@@ -1085,7 +1106,7 @@ class AppApi extends RestController
     $this->form_validation->set_rules('search', 'Search...', 'trim|strip_tags|required');
     $this->form_validation->set_rules('user_id', 'User ID', 'trim|strip_tags|required');
     if ($this->form_validation->run() === FALSE) {
-      $string = str_replace('</p>', '', validation_errors());
+      $string = str_replace('</pre>', '', validation_errors());
       $arrError = explode('<p>', $string);
       $this->response(array(
         "status" => 201,
@@ -1436,7 +1457,11 @@ class AppApi extends RestController
         ), RestController::HTTP_NOT_FOUND);
       } else {
         foreach (json_decode($responseData['images']) as  $value) {
-          unlink("uploads/group_post/$value");
+          if (!empty($value)) {
+            if ($value != 'default.png') {
+              unlink("uploads/group_post/$value");
+            }
+          }
         }
         if ($this->Api_model->Delete("tbl_group_community_post", $id) == true) {
           $this->response(array(
@@ -1679,6 +1704,8 @@ class AppApi extends RestController
     }
   }
 
+
+
   public function createRideGroupDelete_post()
   {
     $this->form_validation->set_rules('frend_id', 'Frend ID', 'trim|strip_tags|required');
@@ -1889,7 +1916,11 @@ class AppApi extends RestController
 
         if (!empty(array_filter(json_decode($responseData['image'])))) {
           foreach (json_decode($responseData['image']) as  $value) {
-            unlink("uploads/stories/$value");
+            if (!empty($value)) {
+              if ($value != 'default.png') {
+                unlink("uploads/stories/$value");
+              }
+            }
           }
         }
         if ($this->Api_model->Delete("tbl_stories", $id) == true) {
@@ -2313,6 +2344,7 @@ class AppApi extends RestController
     }
   }
 
+
   public function myGarageDelete_post()
   {
     $this->form_validation->set_rules('id', 'id', 'trim|strip_tags|required');
@@ -2334,7 +2366,11 @@ class AppApi extends RestController
         ), RestController::HTTP_NOT_FOUND);
       } else {
         foreach (json_decode($responseData['photo']) as  $value) {
-          unlink("uploads/mygarage/$value");
+          if (!empty($value)) {
+            if ($value != 'default.png') {
+              unlink("uploads/mygarage/$value");
+            }
+          }
         }
         if ($this->Api_model->Delete("tbl_my_garage", $id) == true) {
           $this->response(array(

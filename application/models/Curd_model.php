@@ -9,18 +9,10 @@ class Curd_model extends CI_Model
         return  $this->db->where($where)->get('tbl_login')->row();
     }
 
-    public function loginCheck($id)
-    {
-        $where = "id = '$id' AND status='Active'";
-        return  $this->db->where($where)->get('tbl_login')->row_array();
-    }
-
     public function getAccounts($id)
     {
         return  $this->db->where('id', $id)->get('tbl_login')->row_array();
     }
-
-
 
     public function loginGet()
     {

@@ -8,7 +8,6 @@ class Login extends CI_Controller
 	{
 		parent::__construct();
 		$this->load->model('Curd_model');
-		$this->load->model('Curd_model');
 		$this->load->helper('emailsent');
 	}
 
@@ -16,7 +15,7 @@ class Login extends CI_Controller
 
 	public function index()
 	{
-		if (!empty($this->session->userdata('id'))) {
+		if (!empty($this->session->userdata('LoginSession'))) {
 			redirect(base_url('admin/index'));
 		}
 		$data['title'] = 'Login';
@@ -35,9 +34,8 @@ class Login extends CI_Controller
 
 				$password = $this->security->xss_clean($this->input->post('password'));
 				if (password_verify($password, $admin->password) == true) {
-
 					$adminArray['id'] = $admin->id;
-					$this->session->set_userdata('id', $adminArray);
+					$this->session->set_userdata('LoginSession', $adminArray);
 					echo json_encode(array("statusCode" => 200, "msg" => 'Successfully Login', "url" => base_url() . 'admin/index'));
 				} else {
 					echo json_encode(array("statusCode" => 201, "msg" => 'Enter password is incorrect'));
@@ -211,7 +209,7 @@ class Login extends CI_Controller
 
 						$admin = $this->Curd_model->getByUsername($email);
 						$adminArray['id'] = $admin->id;
-					    $this->session->set_userdata('id', $adminArray);
+					    $this->session->set_userdata('LoginSession', $adminArray);
 
 						$masg = 'Hi,' . ucfirst($admin->name) . '<br> Your password has been changed';
 
@@ -238,7 +236,7 @@ class Login extends CI_Controller
 
 	public function logout()
 	{
-		$this->session->unset_userdata('id');
+		$this->session->unset_userdata('LoginSession');
 		$array_msg = array('msg' => 'Logout Successfully', 'icon' => 'success');
 		$this->session->set_flashdata($array_msg);
 		redirect(base_url());

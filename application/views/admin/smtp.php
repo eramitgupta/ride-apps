@@ -1,11 +1,6 @@
 <?php
 require_once('template/head.php');
 ?>
-<style>
-    .error {
-        color: red;
-    }
-</style>
 <!-- Begin page -->
 <div id="layout-wrapper">
 
@@ -31,15 +26,28 @@ require_once('template/head.php');
                         <div class="card">
                             <div class="card-body">
                                 <form method="POST" enctype="multipart/form-data" action="<?= base_url('admin/smtp/update'); ?>">
+                                    <input type="hidden"  name="id" value="<?= $smtpArray[0]['id'] ?>">
                                     <div class="row">
+
+
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="name" class="form-label"> Title </label>
+                                                <input type="text" class="form-control" name="title" id="smtp_host" placeholder="title" value="<?= $smtpArray[0]['title'] ?>">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="name" class="form-label"> Email </label>
+                                                <input type="text" class="form-control" name="email" id="email" placeholder="email" value="<?= $smtpArray[0]['email'] ?>">
+                                            </div>
+                                        </div>
                                         <div class="col-md-6">
                                             <div class="mb-3">
                                                 <label for="name" class="form-label"> Protocol </label>
-                                                <input type="hidden"  name="id" value="<?= $smtpArray[0]['id'] ?>">
                                                 <input type="text" class="form-control" name="protocol" id="protocol" placeholder="Bike Model" value="<?= $smtpArray[0]['protocol'] ?>">
                                             </div>
                                         </div>
-
                                         <div class="col-md-6">
                                             <div class="mb-3">
                                                 <label for="name" class="form-label"> Smtp Host </label>

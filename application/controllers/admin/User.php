@@ -5,18 +5,8 @@ class User extends CI_Controller
 	public function __construct()
 	{
 		parent::__construct();
-		$admin = $this->session->userdata('id');
-		$this->load->model('Curd_model');
-
-		$CheckLogin = $this->Curd_model->loginCheck($admin['id']);
-		$Login['loginData'] = $CheckLogin;
-		$this->load->view('admin/template/array', $Login);
-		if (empty($CheckLogin)) {
-			$this->session->unset_userdata('id');
-			$array_msg = array('msg' => 'Access Denied!', 'icon' => 'error');
-			$this->session->set_flashdata($array_msg);
-			redirect(base_url());
-		}
+        $this->load->model('Curd_model');
+        authValidate();
 	}
 
 	public function list()
@@ -56,7 +46,7 @@ class User extends CI_Controller
 		} else {
 			$status = 'Active';
 		}
-		$admin = $this->session->userdata('id');
+		$admin = $this->session->userdata('LoginSession');
 		if ($admin['id'] == $id) {
 			$array_msg = array('msg' => 'Can`t update myself !', 'icon' => 'error');
 			$this->session->set_flashdata($array_msg);
@@ -81,7 +71,7 @@ class User extends CI_Controller
 		if (empty($admin)) {
 			echo json_encode(array("statusCode" => 201, "msg" => 'Admin not found'));
 		}
-		$admin = $this->session->userdata('id');
+		$admin = $this->session->userdata('LoginSession');
 		if ($admin['id'] == $id) {
 			echo json_encode(array("statusCode" => 201, "msg" => 'Can`t delete myself !'));
 		} else {

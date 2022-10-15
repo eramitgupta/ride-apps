@@ -5,18 +5,8 @@ class Community extends CI_Controller
 	public function __construct()
 	{
 		parent::__construct();
-		$admin = $this->session->userdata('id');
-		$this->load->model('Curd_model');
-
-		$CheckLogin = $this->Curd_model->loginCheck($admin['id']);
-		$Login['loginData'] = $CheckLogin;
-		$this->load->view('admin/template/array', $Login);
-		if (empty($CheckLogin)) {
-			$this->session->unset_userdata('id');
-			$array_msg = array('msg' => 'Access Denied!', 'icon' => 'error');
-			$this->session->set_flashdata($array_msg);
-			redirect(base_url());
-		}
+        $this->load->model('Curd_model');
+        authValidate();
 	}
 
 	public function list()
@@ -119,9 +109,4 @@ class Community extends CI_Controller
 		$data['ArrayGroup'] = $this->Curd_model->Select('tbl_group', ['id' => $Groupid]);
 		$this->load->view('admin/all-group-post', $data);
 	}
-
-
-	// echo "<pre>";
-	// 	print_r($data['ArrayGroupMmembers']);
-	// 	die();
 }

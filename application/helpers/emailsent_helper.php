@@ -18,6 +18,7 @@
 			'charset'   => 'utf-8',
 		);
 
+
          $logo = 'https://ridingmoto.eswa.in/'.'public/logo.png';
 
 		$message = <<<HTML
@@ -116,7 +117,7 @@
 
 
 		$CI->email->initialize($config);
-		$CI->email->from('noreply@ridingmoto.eswa.in', 'Riding Moto App');
+		$CI->email->from($data[0]['email'], $data[0]['title']);
 		$CI->email->to($userEmail);
 		$CI->email->subject($subject);
 		$CI->email->message($message);

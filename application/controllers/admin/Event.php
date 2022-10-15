@@ -5,17 +5,8 @@ class Event extends CI_Controller
     public function __construct()
     {
         parent::__construct();
-        $admin = $this->session->userdata('id');
         $this->load->model('Curd_model');
-        $CheckLogin = $this->Curd_model->loginCheck($admin['id']);
-        $Login['loginData'] = $CheckLogin;
-        $this->load->view('admin/template/array', $Login);
-        if (empty($CheckLogin)) {
-            $this->session->unset_userdata('id');
-            $array_msg = array('msg' => 'Access Denied!', 'icon' => 'error');
-            $this->session->set_flashdata($array_msg);
-            redirect(base_url());
-        }
+        authValidate();
     }
 
     public function add()
@@ -114,7 +105,9 @@ class Event extends CI_Controller
         if (empty($_FILES['file']['name'])) {
             $photoNew =     $this->security->xss_clean($this->input->post('oldphoto'));
         } else {
-            unlink("uploads/event/" . $this->input->post('oldphoto'));
+            if($this->input->post('oldphoto') != 'default.png'){
+                unlink("uploads/event/" . $this->input->post('oldphoto'));
+            }
             $config['upload_path']          = 'uploads/event/';
             $config['allowed_types']        = 'jpeg|jpg|png';
             $config['max_size']             = 2000;

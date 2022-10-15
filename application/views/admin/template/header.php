@@ -52,9 +52,6 @@ if (!empty($this->session->flashdata('msg')) && !empty($this->session->flashdata
         </div>
 
         <div class="d-flex">
-
-
-
             <div class="dropdown d-none d-lg-inline-block ms-1">
                 <button type="button" class="btn header-item noti-icon waves-effect" data-bs-toggle="fullscreen">
                     <i class="bx bx-fullscreen"></i>
@@ -63,8 +60,8 @@ if (!empty($this->session->flashdata('msg')) && !empty($this->session->flashdata
 
             <div class="dropdown d-inline-block">
                 <button type="button" class="btn header-item waves-effect" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <img class="rounded-circle header-profile-user" src="<?= base_url('uploads/user/'.$loginData['photo']) ?>" alt="Header Avatar">
-                    <span class="d-none d-xl-inline-block ms-1" key="t-henry">Hi, <?= ucfirst($loginData['name']) ?></span>
+                    <img class="rounded-circle header-profile-user" src="<?= base_url('uploads/user/' . $loginData[0]['photo']) ?>" alt="Header Avatar">
+                    <span class="d-none d-xl-inline-block ms-1" key="t-henry">Hi, <?= ucfirst($loginData[0]['name']) ?></span>
                     <i class="mdi mdi-chevron-down d-none d-xl-inline-block"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-end">
