@@ -82,10 +82,10 @@ class Login extends CI_Controller
 						'date_time' => date('Y-m-d h:i:s A'),
 					];
 
-					$masg = 'Hi,' . ucfirst($ArrayAdmin->name) . '<br> We received a request to reset your password. Enter the following verification code to reset your password';
+					$masg = 'We received a request to reset your password. Enter the following verification code to reset your password';
 
 					$this->Curd_model->Delete('tbl_otp', ['sent' => $ArrayAdmin->email]);
-					if (emialSent($OTP, $masg, $ArrayAdmin->email, 'Forgot Password OTP') == true) {
+					if (emialSent('Hi, ' . ucfirst($ArrayAdmin->name), $OTP, $masg, $ArrayAdmin->email, 'Forgot Password OTP') == true) {
 
 						$this->Curd_model->insert('tbl_otp', $data);
 						$this->session->set_userdata('forgot_password_check', ['id' => $ArrayAdmin->id, 'email' => $ArrayAdmin->email]);
@@ -127,10 +127,10 @@ class Login extends CI_Controller
 				'date_time' => date('Y-m-d h:i:s A'),
 			];
 
-			$masg = 'Hi,' . ucfirst($ArrayAdmin->name) . '<br> We received a request to reset your password. Enter the following verification code to reset your password';
+			$masg = 'We received a request to reset your password. Enter the following verification code to reset your password';
 
 			$this->Curd_model->Delete('tbl_otp', ['sent' => $ArrayAdmin->email]);
-			if (emialSent($OTP, $masg, $ArrayAdmin->email, 'Forgot Password OTP Resent') == true) {
+			if (emialSent('Hi, ' . ucfirst($ArrayAdmin->name), $OTP, $masg, $ArrayAdmin->email, 'Forgot Password OTP Resent') == true) {
 
 				$this->Curd_model->insert('tbl_otp', $data);
 				$this->session->set_userdata('forgot_password_check', ['id' => $ArrayAdmin->id, 'email' => $ArrayAdmin->email]);
@@ -164,16 +164,16 @@ class Login extends CI_Controller
 			$p4 = $this->security->xss_clean($this->input->post('digit4-input'));
 			$email = $this->security->xss_clean($this->input->post('email'));
 
-			$code = $p1.$p2.$p3.$p4;
+			$code = $p1 . $p2 . $p3 . $p4;
 
-			$ArrayOTP = $this->Curd_model->Select('tbl_otp',['sent' => $email]);
+			$ArrayOTP = $this->Curd_model->Select('tbl_otp', ['sent' => $email]);
 
-			if($code == $ArrayOTP[0]['otp']){
+			if ($code == $ArrayOTP[0]['otp']) {
 				$this->session->unset_userdata('forgot_password_check');
 				$this->Curd_model->Delete('tbl_otp', ['sent' => $email]);
 				$this->session->set_userdata('newPassword', ['email' => $email]);
 				echo json_encode(array("statusCode" => 200, "msg" => 'Successfully Verify!', "url" => base_url() . 'login/password-change'));
-			}else{
+			} else {
 				echo json_encode(array("statusCode" => 201, "msg" => 'Invalid OTP!'));
 			}
 		}
@@ -186,7 +186,8 @@ class Login extends CI_Controller
 		$this->load->view('admin/front-end/password-change', $data);
 	}
 
-	public function NewPassword(){
+	public function NewPassword()
+	{
 		$this->form_validation->set_rules('password', 'Password', 'trim|strip_tags|required');
 		$this->form_validation->set_rules('cpassword', 'cPassword', 'trim|strip_tags|required');
 		if ($this->form_validation->run() == false) {
@@ -197,41 +198,33 @@ class Login extends CI_Controller
 			$cpassword = $this->security->xss_clean($this->input->post('cpassword'));
 			$email = $this->security->xss_clean($this->input->post('email'));
 			$semail = $this->session->userdata('newPassword');
-			if($email == $semail['email']){
+			if ($email == $semail['email']) {
 
-				if($password == $cpassword){
+				if ($password == $cpassword) {
 
 					$data = [
 						'password' => $this->security->xss_clean(password_hash($cpassword, PASSWORD_BCRYPT)),
 					];
-					if ($this->Curd_model->update('tbl_login', ['email' => $email], $data ) == true) {
+					if ($this->Curd_model->update('tbl_login', ['email' => $email], $data) == true) {
 						$this->session->unset_userdata('newPassword');
 
 						$admin = $this->Curd_model->getByUsername($email);
 						$adminArray['id'] = $admin->id;
-					    $this->session->set_userdata('LoginSession', $adminArray);
-
-						$masg = 'Hi,' . ucfirst($admin->name) . '<br> Your password has been changed';
-
-						emialSent('You can login', $masg, $admin->email, 'Successfully Change Password');
+						$this->session->set_userdata('LoginSession', $adminArray);
+						$masg =  'Your password has been changed';
+						emialSent('Hi,' . ucfirst($admin->name), 'You can login', $masg, $admin->email, 'Successfully Change Password');
 
 						echo json_encode(array("statusCode" => 200, "msg" => 'Successfully Update Password', "url" => base_url() . 'admin/index'));
-
 					} else {
 						echo json_encode(array("statusCode" => 201, "msg" => 'Server Error'));
 					}
-
-
-				}else{
+				} else {
 					echo json_encode(array("statusCode" => 201, "msg" => 'Passwords Do Not Much!'));
 				}
-
-			}else{
+			} else {
 				echo json_encode(array("statusCode" => 201, "msg" => 'Session Expired Please Try Again!'));
 			}
-
 		}
-
 	}
 
 	public function logout()
@@ -241,7 +234,4 @@ class Login extends CI_Controller
 		$this->session->set_flashdata($array_msg);
 		redirect(base_url());
 	}
-
-
-
 }

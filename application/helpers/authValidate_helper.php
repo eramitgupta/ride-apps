@@ -1,7 +1,7 @@
 <?php
 
-if (!function_exists('authValidate')) {
-    function authValidate()
+if (!function_exists('LoginAuthValidate')) {
+    function LoginAuthValidate()
     {
         $CI = &get_instance();
         $admin = $CI->session->userdata('LoginSession');
@@ -20,3 +20,4 @@ if (!function_exists('authValidate')) {
 
 
 }
+?>
