@@ -44,7 +44,7 @@ class Api_model extends CI_Model{
         return $this->db->delete($table);
     }
 
-    public function SelectData($table,$array='')
+    public function Select($table,$array='')
     {
         if(!empty($array)){
             $this->db->where($array);

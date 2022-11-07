@@ -1,10 +1,73 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
-
 use chriskacerguis\RestServer\RestController;
-
 require APPPATH . 'libraries/RestController.php';
 require APPPATH . 'libraries/Format.php';
+/*
+All API Name
+1 - LoginDataGet
+2 - Signup
+3 - googleWith
+4 - Login
+5 - loginVerify
+6 - otpResent
+7 - otpList
+8 - ProfileEdit
+9 - CreateRide
+10 - RideEdit
+11 - RideDelete
+12 - GetRide
+13 - Like
+14 - Unlike
+15 - GetLike
+16 - CommentPost
+17 - EditCommentPost
+18 - DeleteComment
+19 - GetComment
+20 - SharePost
+21 - GetSharePost
+22 - DeleteSharePost
+23 - friendRequest
+24 - friendsRequestConfirm
+25 - friendsRequestDelete
+26 - friendList
+27 - friendRequestList
+28 - friendBlockList
+29 - groupList
+30 - userList
+31 - groupCreate
+32 - groupDelete
+33 - groupMembersAdd
+34 - groupCommunityPost
+35 - groupPostGet
+36 - groupDeletePost
+37 - createRideGroup
+38 - createRideGroupShare
+39 - createRideGroupPost
+40 - createRideGroupPostList
+41 - createRideGroupList
+42 - createRideGroupDelete
+43 - CreateRideGroupMembersAdd
+44 - CreateRideGroupMembersList
+45 - StoriesAdd
+46 - StoriesDelete
+47 - StoriesAll
+48 - timeZone
+49 - fellDown
+50 - fellDownResponse
+51 - beepResponse
+52 - language
+53 - slider
+54 - eventList
+55 - envetRegister
+56 - challengesJoin
+57 - myGarage
+58 - myGarageList
+59 - myGarageUpdate
+60 - myGarageDelete
+61 - RecordRides
+
+*/
 
 class AppApi extends RestController
 {
@@ -101,7 +164,7 @@ class AppApi extends RestController
     $this->form_validation->set_rules('email', 'Email', 'trim|strip_tags|required|is_unique[tbl_login.email]');
     $this->form_validation->set_rules('photo_url', 'Photo URL', 'trim|strip_tags|required|is_unique[tbl_login.email]');
 
-    $Arr = $this->Api_model->SelectData('tbl_login', ['email' => $this->input->post('email')]);
+    $Arr = $this->Api_model->Select('tbl_login', ['email' => $this->input->post('email')]);
     // checking form submittion have any error or not
     if ($this->form_validation->run() === FALSE) {
       $string = str_replace('</p>', '', validation_errors());
@@ -191,7 +254,7 @@ class AppApi extends RestController
       $otp = $this->security->xss_clean($this->input->post('otp'));
       $res = $this->Api_model->getRow('tbl_login', $username);
       if (!empty($res)) {
-        $otpArray = $this->Api_model->SelectData('tbl_otp', ['sent' => $res[0]['mobile']]);
+        $otpArray = $this->Api_model->Select('tbl_otp', ['sent' => $res[0]['mobile']]);
         if ($otpArray[0]['otp'] == $otp) {
           $this->Api_model->multipleDelete('tbl_otp', ['sent' => $res[0]['mobile']]);
           $this->response(array(
@@ -252,7 +315,7 @@ class AppApi extends RestController
 
   public function otpList_post()
   {
-    $data = $this->Api_model->SelectData('tbl_otp');
+    $data = $this->Api_model->Select('tbl_otp');
     if (empty($data)) {
       $this->response(array(
         "status" => 201,
@@ -526,7 +589,7 @@ class AppApi extends RestController
     } else {
       $user_id = $this->security->xss_clean($this->input->post('user_id'));
       $array = array('user_id' => $user_id);
-      $response = $this->Api_model->SelectData('tbl_create_ride', $array);
+      $response = $this->Api_model->Select('tbl_create_ride', $array);
       $rowCount = $this->Api_model->CountsData('tbl_create_ride', $array);
       if (!empty($response)) {
 
@@ -779,13 +842,12 @@ class AppApi extends RestController
       $user_id = $this->security->xss_clean($this->input->post('user_id'));
       $post_id = $this->security->xss_clean($this->input->post('post_id'));
       $array = array('user_id' => $user_id, 'post_id' => $post_id);
-      $response = $this->Api_model->SelectData('tbl_ride_comment', $array);
-      $rowCount = $this->Api_model->CountsData('tbl_ride_comment', $array);
+      $response = $this->Api_model->Select('tbl_ride_comment', $array);
       if (!empty($response)) {
         $this->response(array(
           "status" => 200,
           "message" => "Comment found",
-          "total comment" => $rowCount,
+          "total comment" => count($response),
           "data" => $response,
         ), RestController::HTTP_OK);
       } else {
@@ -1005,7 +1067,7 @@ class AppApi extends RestController
 
       $user_id = $this->security->xss_clean($this->input->post('user_id'));
       $friend_id = $this->security->xss_clean($this->input->post('friend_id'));
-      $responseData = $this->Api_model->SelectData('tbl_friends_request', ['user_id' => $user_id, 'frend_id' => $friend_id]);
+      $responseData = $this->Api_model->Select('tbl_friends_request', ['user_id' => $user_id, 'frend_id' => $friend_id]);
       if (empty($responseData)) {
         $this->response(array(
           "status" => 201,
@@ -1101,24 +1163,6 @@ class AppApi extends RestController
     }
   }
 
-  public function friendListSearch_post()
-  {
-    $this->form_validation->set_rules('search', 'Search...', 'trim|strip_tags|required');
-    $this->form_validation->set_rules('user_id', 'User ID', 'trim|strip_tags|required');
-    if ($this->form_validation->run() === FALSE) {
-      $string = str_replace('</pre>', '', validation_errors());
-      $arrError = explode('<p>', $string);
-      $this->response(array(
-        "status" => 201,
-        "message" => array_values(array_filter($arrError)),
-      ), RestController::HTTP_NOT_FOUND);
-    } else {
-      $user_id = $this->security->xss_clean($this->input->post('user_id'));
-      $search = $this->security->xss_clean($this->input->post('search'));
-    }
-  }
-
-
   public function friendBlockList_post()
   {
     $this->form_validation->set_rules('user_id', 'User ID', 'trim|strip_tags|required');
@@ -1132,13 +1176,12 @@ class AppApi extends RestController
     } else {
       $user_id = $this->security->xss_clean($this->input->post('user_id'));
       $array = array('user_id' => $user_id, 'status' => 'Block');
-      $response = $this->Api_model->SelectData('tbl_friends_request', $array);
-      $rowCount = $this->Api_model->CountsData('tbl_friends_request', $array);
+      $response = $this->Api_model->Select('tbl_friends_request', $array);
       if (!empty($response)) {
         $this->response(array(
           "status" => 200,
           "message" => "Friend Block list found",
-          "total friend Block list found" => $rowCount,
+          "total friend Block list found" => count($response),
           "data" => $response,
         ), RestController::HTTP_OK);
       } else {
@@ -1163,13 +1206,12 @@ class AppApi extends RestController
     } else {
       $user_id = $this->security->xss_clean($this->input->post('user_id'));
       $array = array('user_id' => $user_id);
-      $response = $this->Api_model->SelectData('tbl_group', $array);
-      $rowCount = $this->Api_model->CountsData('tbl_group', $array);
+      $response = $this->Api_model->Select('tbl_group', $array);
       if (!empty($response)) {
         $this->response(array(
           "status" => 200,
           "message" => "Group List found",
-          "total Group List found" => $rowCount,
+          "total Group List found" => count($response),
           "data" => $response,
         ), RestController::HTTP_OK);
       } else {
@@ -1183,7 +1225,7 @@ class AppApi extends RestController
 
   public function userList_post()
   {
-    $response = $this->Api_model->SelectData('tbl_login', ['role' => 'user']);
+    $response = $this->Api_model->Select('tbl_login', ['role' => 'user']);
     $rowCount = $this->Api_model->CountsData('tbl_login', ['role' => 'user']);
     if (!empty($response)) {
       for ($i = 0; $i < count($response); $i++) {
@@ -1336,149 +1378,6 @@ class AppApi extends RestController
     }
   }
 
-  public function groupCommunityPost_post()
-  {
-    $this->form_validation->set_rules('user_id', 'User ID', 'trim|strip_tags|required');
-    $this->form_validation->set_rules('group_id', 'Group ID', 'trim|strip_tags|required');
-    $this->form_validation->set_rules('text', 'Text', 'trim|strip_tags|required');
-    $this->form_validation->set_rules('tag', 'Tag', 'trim|strip_tags|required');
-    if ($this->form_validation->run() === FALSE) {
-      $string = str_replace('</p>', '', validation_errors());
-      $arrError = explode('<p>', $string);
-      $this->response(array(
-        "status" => 201,
-        "message" => array_values(array_filter($arrError)),
-      ), RestController::HTTP_NOT_FOUND);
-    } else {
-
-      $data = [];
-      $count = count($_FILES['files']['name']);
-      for ($i = 0; $i < $count; $i++) {
-        if (!empty($_FILES['files']['name'][$i])) {
-          $_FILES['file']['name'] = $_FILES['files']['name'][$i];
-          $_FILES['file']['type'] = $_FILES['files']['type'][$i];
-          $_FILES['file']['tmp_name'] = $_FILES['files']['tmp_name'][$i];
-          $_FILES['file']['error'] = $_FILES['files']['error'][$i];
-          $_FILES['file']['size'] = $_FILES['files']['size'][$i];
-
-          $config['upload_path'] = 'uploads/group_post';
-          $config['allowed_types'] = 'jpg|jpeg|png|gif';
-          $config['max_size'] = '5000';
-          $config['encrypt_name'] = TRUE;
-          $config['file_name'] = $_FILES['files']['name'][$i];
-
-          $this->load->library('upload', $config);
-
-          if ($this->upload->do_upload('file')) {
-            $uploadData = $this->upload->data();
-            $filename = $uploadData['file_name'];
-
-            $data['totalFiles'][] = $filename;
-          }
-        }
-      }
-
-      $dataInput = [
-        'user_id' => $this->security->xss_clean($this->input->post('user_id')),
-        'group_id' => $this->security->xss_clean($this->input->post('group_id')),
-        'text' => $this->security->xss_clean($this->input->post('text')),
-        'images' => json_encode($data['totalFiles']),
-        'tag' => $this->security->xss_clean($this->input->post('tag')),
-        'date_time' => date('Y-m-d h:i:s A'),
-      ];
-
-      if ($this->Api_model->insert('tbl_group_community_post', $dataInput) == true) {
-        $this->response(array(
-          "status" => 200,
-          "message" => 'Successfully Post',
-        ), RestController::HTTP_OK);
-      } else {
-        $this->response(array(
-          "status" => 201,
-          "message" => 'Server Error',
-        ), RestController::HTTP_NOT_FOUND);
-      }
-    }
-  }
-
-
-  public function groupPostGet_post()
-  {
-    $this->form_validation->set_rules('user_id', 'User ID', 'trim|strip_tags|required');
-    $this->form_validation->set_rules('group_id', 'Group ID', 'trim|strip_tags|required');
-    if ($this->form_validation->run() === FALSE) {
-      $string = str_replace('</p>', '', validation_errors());
-      $arrError = explode('<p>', $string);
-      $this->response(array(
-        "status" => 201,
-        "message" => array_values(array_filter($arrError)),
-      ), RestController::HTTP_NOT_FOUND);
-    } else {
-      $user_id = $this->security->xss_clean($this->input->post('user_id'));
-      $group_id = $this->security->xss_clean($this->input->post('group_id'));
-      $array = array('user_id' => $user_id, 'group_id' => $group_id);
-      $response = $this->Api_model->SelectData('tbl_group_community_post', $array);
-      $rowCount = $this->Api_model->CountsData('tbl_group_community_post', $array);
-      if (!empty($response)) {
-        $this->response(array(
-          "status" => 200,
-          "message" => "Group Post List found",
-          "total Group Post List found" => $rowCount,
-          "data" => $response,
-        ), RestController::HTTP_OK);
-      } else {
-        $this->response(array(
-          "status" => 201,
-          "message" => "Not found",
-        ), RestController::HTTP_NOT_FOUND);
-      }
-    }
-  }
-
-
-  public function groupDeletePost_post()
-  {
-    $this->form_validation->set_rules('id', 'id', 'trim|strip_tags|required');
-    if ($this->form_validation->run() === FALSE) {
-      $string = str_replace('</p>', '', validation_errors());
-      $arrError = explode('<p>', $string);
-      $this->response(array(
-        "status" => 201,
-        "message" => array_values(array_filter($arrError)),
-      ), RestController::HTTP_NOT_FOUND);
-    } else {
-
-      $id = $this->security->xss_clean($this->input->post('id'));
-      $responseData = $this->Api_model->GetData('tbl_group_community_post', $id);
-      if (empty($responseData)) {
-        $this->response(array(
-          "status" => 201,
-          "message" => 'Not Found Data',
-        ), RestController::HTTP_NOT_FOUND);
-      } else {
-        foreach (json_decode($responseData['images']) as  $value) {
-          if (!empty($value)) {
-            if ($value != 'default.png') {
-              unlink("uploads/group_post/$value");
-            }
-          }
-        }
-        if ($this->Api_model->Delete("tbl_group_community_post", $id) == true) {
-          $this->response(array(
-            "status" => 200,
-            "message" => 'Delete Successfully',
-          ), RestController::HTTP_OK);
-        } else {
-          $this->response(array(
-            "status" => 201,
-            "message" => 'Server Error',
-          ), RestController::HTTP_NOT_FOUND);
-        }
-      }
-    }
-  }
-
-
   public function createRideGroup_post()
   {
     $this->form_validation->set_rules('user_id', 'User ID', 'trim|strip_tags|required');
@@ -1547,7 +1446,7 @@ class AppApi extends RestController
     }
 
     $array = array('user_id' => $user_id, 'status' => 'Active');
-    $response = $this->Api_model->SelectData('tbl_friends_request', $array);
+    $response = $this->Api_model->Select('tbl_friends_request', $array);
 
     if ($this->form_validation->run() === FALSE) {
       $string = str_replace('</p>', '', validation_errors());
@@ -1651,13 +1550,20 @@ class AppApi extends RestController
         "message" => array_values(array_filter($arrError)),
       ), RestController::HTTP_NOT_FOUND);
     } else {
-      $response = $this->Api_model->SelectData('tbl_create_ride_group_post', ['group_id' => $this->input->post('group_id')]);
-      $rowCount = $this->Api_model->CountsData('tbl_create_ride_group_post', ['group_id' => $this->input->post('group_id')]);
+      $response = $this->Api_model->Select('tbl_create_ride_group_post', ['group_id' => $this->input->post('group_id')]);
       if (!empty($response)) {
+
+        for ($i = 0; $i < count($response); $i++) {
+            $likes = $this->db->get_where('tbl_likes', array('user_id' => $response[$i]['user_id'], 'post_id' => $response[$i]['id']))->result_array();
+            $comment = $this->db->get_where('tbl_ride_comment', array('user_id' => $response[$i]['user_id'], 'post_id' => $response[$i]['id']))->result_array();
+            $response[$i]['post_like'] = count($likes);
+            $response[$i]['post_comment'] = count($comment);
+        }
+
         $this->response(array(
           "status" => 200,
           "message" => "Create Ride Group Post List found",
-          "total Create Ride Group Post List found" => $rowCount,
+          "total Create Ride Group Post List found" => count($response),
           "images Base Url path" => base_url('uploads/group_post/'),
           "data" => $response,
         ), RestController::HTTP_OK);
@@ -1687,7 +1593,7 @@ class AppApi extends RestController
       $user_id =  $this->security->xss_clean($this->input->post('user_id'));
 
       $array = array('user_id' => $user_id);
-      $response = $this->Api_model->SelectData('tbl_create_ride_group', $array);
+      $response = $this->Api_model->Select('tbl_create_ride_group', $array);
       $rowCount = $this->Api_model->CountsData('tbl_create_ride_group', $array);
       if (empty($response)) {
         $this->response(array(
@@ -2091,7 +1997,7 @@ class AppApi extends RestController
 
   public function language_post()
   {
-    $data = $this->Api_model->SelectData('tbl_languages');
+    $data = $this->Api_model->Select('tbl_languages');
     if (empty($data)) {
       $this->response(array(
         "status" => 201,
@@ -2108,7 +2014,7 @@ class AppApi extends RestController
 
   public function slider_post()
   {
-    $data = $this->Api_model->SelectData('tbl_slider',  ['status' => 'Show']);
+    $data = $this->Api_model->Select('tbl_slider',  ['status' => 'Show']);
     if (empty($data)) {
       $this->response(array(
         "status" => 201,
@@ -2125,13 +2031,21 @@ class AppApi extends RestController
 
   public function eventList_post()
   {
-    $data = $this->Api_model->SelectData('tbl_event',  ['status' => 'Show']);
+    $data = $this->Api_model->Select('tbl_event',  ['status' => 'Show']);
     if (empty($data)) {
       $this->response(array(
         "status" => 201,
         "message" => 'Not Found',
       ), RestController::HTTP_NOT_FOUND);
     } else {
+
+      for ($i = 0; $i < count($data); $i++) {
+        if (!empty($data[$i]['photo'])) {
+          $data[$i]['images'] = base_url() . 'uploads/event/' . $data[$i]['photo'];
+          unset($data[$i]['photo']);
+        }
+      }
+
       $this->response(array(
         "status" => 200,
         "message" => 'Event Found',
@@ -2321,7 +2235,6 @@ class AppApi extends RestController
         "message" => array_values(array_filter($arrError)),
       ), RestController::HTTP_NOT_FOUND);
     } else {
-
       $dataInput = [
         'name' => $this->security->xss_clean($this->input->post('name')),
         'maker' => $this->security->xss_clean($this->input->post('maker')),
@@ -2386,4 +2299,43 @@ class AppApi extends RestController
       }
     }
   }
+
+  public function RecordRides_post(){
+    $this->form_validation->set_rules('to_location', 'To Location', 'trim|strip_tags|required');
+    $this->form_validation->set_rules('from_location', 'From Location', 'trim|strip_tags|required');
+    $this->form_validation->set_rules('user_id', 'User ID', 'trim|strip_tags|required');
+    $this->form_validation->set_rules('group_id', 'Group ID', 'trim|strip_tags|required');
+    $this->form_validation->set_rules('dateTime', 'Date Time', 'trim|strip_tags|required');
+    if ($this->form_validation->run() === FALSE) {
+      $string = str_replace('</p>', '', validation_errors());
+      $arrError = explode('<p>', $string);
+      $this->response(array(
+        "status" => 201,
+        "message" => array_values(array_filter($arrError)),
+      ), RestController::HTTP_NOT_FOUND);
+    } else {
+
+      $dataInput = [
+        'to_location' => $this->security->xss_clean($this->input->post('to_location')),
+        'from_location' => $this->security->xss_clean($this->input->post('from_location')),
+        'user_id' => $this->security->xss_clean($this->input->post('user_id')),
+        'group_id' => $this->security->xss_clean($this->input->post('group_id')),
+        'dateTime' => $this->security->xss_clean($this->input->post('dateTime')),
+      ];
+
+      if ($this->Api_model->insert('tbl_record_rides',$dataInput) == true) {
+        $this->response(array(
+          "status" => 200,
+          "message" => 'Successfully Insert',
+        ), RestController::HTTP_OK);
+      } else {
+        $this->response(array(
+          "status" => 201,
+          "message" => 'Server Error',
+        ), RestController::HTTP_NOT_FOUND);
+      }
+
+    }
+  }
+
 }
